@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ page_title }}</h1>
+<div class="form-card">
+  {% if blocked %}
+  <p class="alert alert-warning"><strong>Warning:</strong> {{ object }} has linked batches or records, so it cannot be deleted. Historical production data is protected. Change its status instead (for example to Cancelled).</p>
+  <a class="btn btn-secondary" href="{{ cancel_url }}">Back</a>
+  {% else %}
+  <p>Delete the {{ label }} <strong>{{ object }}</strong>? It has no linked records. This cannot be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete {{ label }}</button>
+    <a class="btn btn-secondary" href="{{ cancel_url }}">Cancel</a>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

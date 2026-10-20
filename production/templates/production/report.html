@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Reports</h1>
+  {% if report %}
+  <div>
+    <a class="btn btn-secondary" href="{% url 'production:report_export' %}?{{ export_query }}">Export summary CSV</a>
+    <a class="btn btn-secondary" href="{% url 'production:report_export' %}?{{ export_query }}{% if export_query %}&amp;{% endif %}section=downtime">Export downtime events CSV</a>
+  </div>
+  {% endif %}
+</div>
+<p class="lead">Uses the same calculations as the dashboard. Dates are inclusive. CSV exports contain exactly the records matching the active filters.</p>
+{% include "production/_filters.html" %}
+{% if filter_invalid %}
+<div class="empty-state"><p><strong>The filters are not valid.</strong> Correct them and apply again.</p></div>
+{% else %}
+<p class="scope"><strong>Active filters:</strong> {% for d in filter_descriptions %}{{ d }}{% if not forloop.last %}; {% endif %}{% endfor %}</p>
+{% include "production/_report_body.html" %}
+{% endif %}
+{% endblock %}

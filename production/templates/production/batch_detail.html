@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'production:batch_list' %}">Batches</a> / {{ batch.batch_code }}</nav>
+<div class="page-head">
+  <h1>Batch {{ batch.batch_code }}</h1>
+  <div>
+    <a class="btn btn-primary" href="{% url 'production:batch_update' batch.pk %}">Edit</a>
+    <a class="btn btn-danger-outline" href="{% url 'production:batch_delete' batch.pk %}">Delete</a>
+  </div>
+</div>
+<dl class="detail-list">
+  <div class="detail-row"><dt>Order</dt><dd><a href="{% url 'production:order_detail' batch.order_id %}">{{ batch.order.order_code }}</a></dd></div>
+  <div class="detail-row"><dt>Planned quantity</dt><dd>{% if batch.planned_quantity is not None %}{{ batch.planned_quantity|qty }} {{ batch.unit.code }}{% else %}Not set{% endif %}</dd></div>
+  <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-{{ batch.status|lower }}">{{ batch.get_status_display }}</span></dd></div>
+  <div class="detail-row"><dt>Dates</dt><dd>{{ batch.start_date|date:"Y-m-d"|default:"not set" }} to {{ batch.end_date|date:"Y-m-d"|default:"not set" }}</dd></div>
+  <div class="detail-row"><dt>Notes</dt><dd>{{ batch.notes|default:"-" }}</dd></div>
+</dl>
+<p>
+  <a class="btn btn-secondary" href="{% url 'production:production_create' %}?order={{ batch.order_id }}&amp;batch={{ batch.pk }}">Add production record</a>
+  <a class="btn btn-secondary" href="{% url 'production:downtime_create' %}?order={{ batch.order_id }}&amp;batch={{ batch.pk }}">Add downtime</a>
+  <a class="btn btn-secondary" href="{% url 'production:quality_create' %}?order={{ batch.order_id }}&amp;batch={{ batch.pk }}">Add quality record</a>
+  <a class="btn btn-secondary" href="{% url 'production:downtime_list' %}?batch={{ batch.pk }}">View downtime</a>
+  <a class="btn btn-secondary" href="{% url 'production:quality_list' %}?batch={{ batch.pk }}">View quality records</a>
+</p>
+<h2>Summary (all recorded dates)</h2>
+{% include "production/_report_body.html" %}
+{% endblock %}

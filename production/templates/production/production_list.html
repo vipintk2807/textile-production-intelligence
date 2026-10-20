@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<div class="page-head"><h1>{{ page_title }}</h1><a class="btn btn-primary" href="{{ create_url }}">{{ create_label }}</a></div>
+<p class="lead">Target and actual output are stored values. Achievement and variance are calculated per record.</p>
+{% include "production/_filters.html" %}
+{% if rows %}
+<div class="table-wrap">
+  <table class="data-table">
+    <caption class="visually-hidden">Production records</caption>
+    <thead><tr>
+      <th scope="col">ID</th><th scope="col">Date</th><th scope="col">Period label</th><th scope="col">Order</th><th scope="col">Batch</th>
+      <th scope="col" class="num">Target (stored)</th><th scope="col" class="num">Actual (stored)</th>
+      <th scope="col" class="num">Achievement (calculated)</th><th scope="col" class="num">Variance (calculated)</th><th scope="col">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for record, achievement, variance in rows %}
+      <tr>
+        <td><a href="{% url 'production:production_detail' record.pk %}">#{{ record.pk }}</a></td>
+        <td>{{ record.production_date|date:"Y-m-d" }}</td>
+        <td>{{ record.period_label|default:"-" }}</td>
+        <td><a href="{% url 'production:order_detail' record.order_id %}">{{ record.order.order_code }}</a></td>
+        <td>{% if record.batch_id %}<a href="{% url 'production:batch_detail' record.batch_id %}">{{ record.batch.batch_code }}</a>{% else %}Order-level{% endif %}</td>
+        <td class="num">{% if record.target_quantity is None %}No target{% else %}{{ record.target_quantity|qty }} {{ record.unit.code }}{% endif %}</td>
+        <td class="num">{{ record.actual_quantity|qty }} {{ record.unit.code }}</td>
+        <td class="num">{{ achievement|kpi_pct }}</td>
+        <td class="num">{% if variance|kpi_na %}Not available{% else %}{{ variance.value|qty }} {{ record.unit.code }}{% endif %}</td>
+        <td><a href="{% url 'production:production_detail' record.pk %}">View</a> | <a href="{% url 'production:production_update' record.pk %}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "production/_pagination.html" %}
+{% else %}
+{% include "production/_empty.html" with noun="production records" %}
+{% endif %}
+{% endblock %}

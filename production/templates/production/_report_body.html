@@ -1,0 +1,118 @@
+{% load production_extras %}
+{% if not report.has_data %}
+<div class="empty-state">
+  <p><strong>No production, quality or downtime records match this scope.</strong></p>
+  <p>This does not mean nothing happened; it means nothing is recorded for the selected filters.</p>
+</div>
+{% else %}
+<section aria-labelledby="summary-h">
+  <h2 id="summary-h">Production and quality summary by unit</h2>
+  <p class="note">Quantities in different units are shown separately and are never added together. Achievement and variance use only records that carry a target; output without a target is still shown in the actual total.</p>
+  {% for t in report.unit_totals %}
+  <h3 class="unit-heading">Unit: {{ t.unit }}</h3>
+  <div class="kpi-grid">
+    {% if t.summary %}
+      {% include "production/_kpi_card.html" with label="Production target" value=t.summary.totals.target_total|qty_or:"No target recorded" unit=t.unit note="Sum of targets on records that have one" %}
+      {% include "production/_kpi_card.html" with label="Actual output (all records)" value=t.summary.totals.actual_total|qty unit=t.unit note="Recorded output; not assumed to be acceptable output" %}
+      {% include "production/_kpi_card.html" with label="Target achievement" value=t.summary.achievement|kpi_pct na=t.summary.achievement|kpi_na note=t.summary.achievement|kpi_reason|default:"Sum of actual / sum of target x 100 (records with a target)" %}
+      {% include "production/_kpi_card.html" with label="Production variance" value=t.summary.variance|kpi_qty na=t.summary.variance|kpi_na note=t.summary.variance|kpi_reason|default:"Actual minus target (records with a target)" %}
+    {% else %}
+      <p class="note">No production records in scope for this unit.</p>
+    {% endif %}
+    {% if report.show_rework %}
+      {% include "production/_kpi_card.html" with label="Rework quantity" value=t.rework|qty_or:"No records" unit=t.unit note="Recorded events only; no record is not the same as zero rework" %}
+    {% endif %}
+    {% if report.show_rejection %}
+      {% include "production/_kpi_card.html" with label="Rejection quantity" value=t.rejection|qty_or:"No records" unit=t.unit note="Recorded events only; no record is not the same as zero rejection" %}
+    {% endif %}
+  </div>
+  {% endfor %}
+  <p class="note"><strong>Rework and rejection rates: Not available.</strong> No approved denominator is defined for these rates, so they are not calculated (see docs/DOMAIN_RULES.md).</p>
+</section>
+
+<section aria-labelledby="perf-h">
+  <h2 id="perf-h">Production performance by order and batch</h2>
+  <div class="table-wrap">
+    <table class="data-table">
+      <caption class="visually-hidden">Production performance by order, batch and unit</caption>
+      <thead>
+        <tr>
+          <th scope="col">Order ID</th>
+          <th scope="col">Product / style</th>
+          <th scope="col">Batch</th>
+          <th scope="col">Order status</th>
+          <th scope="col">Unit</th>
+          <th scope="col" class="num">Target</th>
+          <th scope="col" class="num">Actual (all)</th>
+          <th scope="col" class="num">Achievement</th>
+          <th scope="col" class="num">Variance</th>
+          <th scope="col" class="num">Rework</th>
+          <th scope="col" class="num">Rejection</th>
+          <th scope="col">Records</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in report.rows %}
+        <tr>
+          <td><a href="{% url 'production:order_detail' row.order_id %}">{{ row.order_code }}</a></td>
+          <td>{{ row.product_reference }}</td>
+          <td>{% if row.batch_id %}<a href="{% url 'production:batch_detail' row.batch_id %}">{{ row.batch_code }}</a>{% else %}Order-level{% endif %}</td>
+          <td>{{ row.order_status_label }}</td>
+          <td>{{ row.unit }}</td>
+          {% if row.production %}
+          <td class="num">{{ row.production.totals.target_total|qty_or:"No target" }}</td>
+          <td class="num">{{ row.production.totals.actual_total|qty }}</td>
+          <td class="num">{{ row.production.achievement|kpi_pct }}</td>
+          <td class="num">{{ row.production.variance|kpi_qty }}{% if row.production.variance.value|negative %} (below target){% endif %}</td>
+          {% else %}
+          <td class="num" colspan="4">No production records</td>
+          {% endif %}
+          <td class="num">{% if report.show_rework %}{{ row.rework|qty_or:"No records" }}{% else %}Filtered out{% endif %}</td>
+          <td class="num">{% if report.show_rejection %}{{ row.rejection|qty_or:"No records" }}{% else %}Filtered out{% endif %}</td>
+          <td><a href="{% url 'production:production_list' %}?order={{ row.order_id }}{% if row.batch_id %}&amp;batch={{ row.batch_id }}{% endif %}{% if report.filters.start_date %}&amp;start_date={{ report.filters.start_date|date:'Y-m-d' }}{% endif %}{% if report.filters.end_date %}&amp;end_date={{ report.filters.end_date|date:'Y-m-d' }}{% endif %}">View records</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="down-h">
+  <h2 id="down-h">Recorded downtime</h2>
+  {% if report.downtime.event_count %}
+  <div class="kpi-grid">
+    {% include "production/_kpi_card.html" with label="Downtime events" value=report.downtime.event_count note="Events overlapping the selected period" %}
+    {% include "production/_kpi_card.html" with label="Sum of recorded event durations" value=report.downtime.sum_minutes|minutes note="Overlapping time is counted more than once" %}
+    {% include "production/_kpi_card.html" with label="Unique elapsed downtime" value=report.downtime.unique_minutes|minutes note="Clock time covered by at least one event, counted once" %}
+    {% include "production/_kpi_card.html" with label="Overlapping event pairs" value=report.downtime.overlap_pairs note="Flagged for review; there is no machine identifier" %}
+  </div>
+  <p class="note">Events crossing a period boundary contribute only the part inside the period. These are recorded interruptions, not machine availability or OEE.</p>
+  <div class="two-col">
+    <div class="table-wrap">
+      <table class="data-table">
+        <caption>Downtime by category</caption>
+        <thead><tr><th scope="col">Category</th><th scope="col" class="num">Events</th><th scope="col" class="num">Sum of durations</th></tr></thead>
+        <tbody>
+          {% for g in report.downtime.by_category %}
+          <tr><td>{{ g.label }}</td><td class="num">{{ g.events }}</td><td class="num">{{ g.sum_minutes|minutes }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <caption>Downtime by order / batch</caption>
+        <thead><tr><th scope="col">Order / batch</th><th scope="col" class="num">Events</th><th scope="col" class="num">Sum of durations</th><th scope="col" class="num">Unique elapsed</th></tr></thead>
+        <tbody>
+          {% for g in report.downtime.groups %}
+          <tr><td>{{ g.label }}</td><td class="num">{{ g.events }}</td><td class="num">{{ g.sum_minutes|minutes }}</td><td class="num">{{ g.unique_minutes|minutes }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state"><p>No downtime events are recorded for this scope. This does not prove there was no downtime.</p></div>
+  {% endif %}
+</section>
+{% endif %}

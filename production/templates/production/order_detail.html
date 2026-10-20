@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'production:order_list' %}">Orders</a> / {{ order.order_code }}</nav>
+<div class="page-head">
+  <h1>Order {{ order.order_code }}</h1>
+  <div>
+    <a class="btn btn-primary" href="{% url 'production:order_update' order.pk %}">Edit</a>
+    <a class="btn btn-danger-outline" href="{% url 'production:order_delete' order.pk %}">Delete</a>
+  </div>
+</div>
+<dl class="detail-list">
+  <div class="detail-row"><dt>Product / style</dt><dd>{{ order.product_reference }}</dd></div>
+  <div class="detail-row"><dt>Order quantity</dt><dd>{{ order.order_quantity|qty }} {{ order.unit.code }}</dd></div>
+  <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span></dd></div>
+  <div class="detail-row"><dt>Planned dates</dt><dd>{{ order.planned_start_date|date:"Y-m-d"|default:"not set" }} to {{ order.planned_end_date|date:"Y-m-d"|default:"not set" }}</dd></div>
+  <div class="detail-row"><dt>Remaining quantity</dt>
+    <dd>{% if remaining.result.ok %}{{ remaining.result.value|qty }} {{ order.unit.code }}
+      {% if remaining.over_produced %}<span class="flag flag-warning">Over-produced: recorded output exceeds the order quantity</span>{% endif %}
+      <span class="muted">(order quantity minus recorded actual output in {{ order.unit.code }}: {{ remaining.completed|qty }} {{ order.unit.code }}.
+      Provisional definition; see docs/DOMAIN_RULES.md.)</span>
+      {% if remaining.excluded_other_unit_records %}<br><span class="flag flag-warning">{{ remaining.excluded_other_unit_records }} record(s) in other units were excluded.</span>{% endif %}
+    {% else %}Not available - {{ remaining.result.reason }}{% endif %}</dd></div>
+  <div class="detail-row"><dt>Notes</dt><dd>{{ order.notes|default:"-" }}</dd></div>
+</dl>
+
+<section aria-labelledby="batches-h">
+  <div class="page-head"><h2 id="batches-h">Batches</h2><a class="btn btn-secondary" href="{% url 'production:batch_create' %}?order={{ order.pk }}">Add Batch</a></div>
+  {% if batches %}
+  <ul class="plain-list">{% for b in batches %}<li><a href="{% url 'production:batch_detail' b.pk %}">{{ b.batch_code }}</a> - {{ b.get_status_display }}{% if b.planned_quantity %} - planned {{ b.planned_quantity|qty }} {{ b.unit.code }}{% endif %}</li>{% endfor %}</ul>
+  {% else %}<p class="note">No batches have been created for this order.</p>{% endif %}
+</section>
+
+<p>
+  <a class="btn btn-secondary" href="{% url 'production:production_create' %}?order={{ order.pk }}">Add production record</a>
+  <a class="btn btn-secondary" href="{% url 'production:downtime_create' %}?order={{ order.pk }}">Add downtime</a>
+  <a class="btn btn-secondary" href="{% url 'production:quality_create' %}?order={{ order.pk }}">Add quality record</a>
+  <a class="btn btn-secondary" href="{% url 'production:quality_list' %}?order={{ order.pk }}">View quality records</a>
+  <a class="btn btn-secondary" href="{% url 'production:downtime_list' %}?order={{ order.pk }}">View downtime</a>
+</p>
+<h2>Summary (all recorded dates)</h2>
+{% include "production/_report_body.html" %}
+{% endblock %}

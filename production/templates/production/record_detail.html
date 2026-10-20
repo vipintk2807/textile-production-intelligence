@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="{{ list_url }}">Back to list</a></nav>
+<div class="page-head">
+  <h1>{{ page_title }}</h1>
+  <a class="btn btn-primary" href="{{ edit_url }}">Edit</a>
+</div>
+<dl class="detail-list">
+  {% for label, text, url in rows %}
+  <div class="detail-row">
+    <dt>{{ label }}</dt>
+    <dd>{% if url %}<a href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}</dd>
+  </div>
+  {% endfor %}
+</dl>
+{% if extra_note %}<p class="note">{{ extra_note }}</p>{% endif %}
+{% endblock %}

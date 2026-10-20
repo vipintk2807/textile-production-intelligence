@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<div class="page-head"><h1>{{ page_title }}</h1><a class="btn btn-primary" href="{{ create_url }}">{{ create_label }}</a></div>
+<p class="lead">Duration is derived from the start and end times. Date filters match events that overlap the selected dates.</p>
+{% include "production/_filters.html" %}
+{% if object_list %}
+<div class="table-wrap">
+  <table class="data-table">
+    <caption class="visually-hidden">Downtime records</caption>
+    <thead><tr>
+      <th scope="col">ID</th><th scope="col">Order</th><th scope="col">Batch</th><th scope="col">Category</th>
+      <th scope="col">Start</th><th scope="col">End</th><th scope="col" class="num">Duration (calculated)</th><th scope="col">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for event in object_list %}
+      <tr>
+        <td><a href="{% url 'production:downtime_detail' event.pk %}">#{{ event.pk }}</a></td>
+        <td>{% if event.order_id %}<a href="{% url 'production:order_detail' event.order_id %}">{{ event.order.order_code }}</a>{% else %}Not linked{% endif %}</td>
+        <td>{% if event.batch_id %}<a href="{% url 'production:batch_detail' event.batch_id %}">{{ event.batch.batch_code }}</a>{% else %}-{% endif %}</td>
+        <td>{{ event.get_category_display }}</td>
+        <td>{{ event.start_at|date:"Y-m-d H:i" }}</td>
+        <td>{{ event.end_at|date:"Y-m-d H:i" }}</td>
+        <td class="num">{{ event.duration_minutes|minutes }}</td>
+        <td><a href="{% url 'production:downtime_detail' event.pk %}">View</a> | <a href="{% url 'production:downtime_update' event.pk %}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "production/_pagination.html" %}
+{% else %}
+{% include "production/_empty.html" with noun="downtime records" %}
+{% endif %}
+{% endblock %}

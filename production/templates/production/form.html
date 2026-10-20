@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p class="lead">Fields marked (required) must be completed. Quantities allow up to 3 decimal places and always belong to the unit you select. Nothing is saved until the form passes validation.</p>
+{% include "production/_form.html" %}
+{% endblock %}

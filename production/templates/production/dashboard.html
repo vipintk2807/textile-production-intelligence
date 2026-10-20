@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<h1>Dashboard</h1>
+<p class="lead">Summary of <strong>recorded</strong> production, calculated from saved records. It is not a live view of the factory.</p>
+{% include "production/_filters.html" %}
+{% if filter_invalid %}
+<div class="empty-state"><p><strong>The filters are not valid.</strong> Correct them and apply again; no figures are shown until they are valid.</p></div>
+{% else %}
+  {% if order_count == 0 and not report.has_data %}
+  <div class="empty-state">
+    <p><strong>No data has been recorded yet.</strong> Start by creating an order, then add batches and production records.</p>
+    <p><a class="btn btn-primary" href="{% url 'production:order_create' %}">Add Order</a>
+       <a class="btn btn-secondary" href="{% url 'production:production_create' %}">Add Production Record</a></p>
+  </div>
+  {% else %}
+  <p class="scope"><strong>Reporting scope:</strong> {% for d in filter_descriptions %}{{ d }}{% if not forloop.last %}; {% endif %}{% endfor %}</p>
+  {% include "production/_report_body.html" %}
+  {% endif %}
+  <section aria-labelledby="status-h">
+    <h2 id="status-h">Production orders by status</h2>
+    <p class="note">Counts all orders regardless of the filters above, using the manually recorded status.</p>
+    <div class="table-wrap">
+      <table class="data-table narrow">
+        <thead><tr><th scope="col">Status</th><th scope="col" class="num">Orders</th></tr></thead>
+        <tbody>{% for label, n in status_counts %}<tr><td>{{ label }}</td><td class="num">{{ n }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+  <section aria-labelledby="attn-h">
+    <h2 id="attn-h">Orders to investigate</h2>
+    {% if attention %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th scope="col">Order</th><th scope="col">Status</th><th scope="col" class="num">Remaining (recorded output basis)</th><th scope="col">Why flagged</th></tr></thead>
+        <tbody>
+          {% for order, info, reason in attention %}
+          <tr>
+            <td><a href="{% url 'production:order_detail' order.pk %}">{{ order.order_code }}</a></td>
+            <td>{{ order.get_status_display }}</td>
+            <td class="num">{{ info.result.value|qty }} {{ order.unit.code }}</td>
+            <td><span class="flag flag-warning">Investigate</span> {{ reason }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="note">No order currently shows a mismatch between its recorded status and recorded output.</p>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

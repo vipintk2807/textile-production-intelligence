@@ -1,0 +1,28 @@
+<form method="post" class="form-card" novalidate{% if is_edit %} data-warn-unsaved{% endif %}>
+  {% csrf_token %}
+  {% if form.errors %}
+  <div class="error-summary" role="alert">
+    <h2>Please correct the following</h2>
+    <ul>
+      {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      {% for field in form %}{% for error in field.errors %}
+      <li><a href="#{{ field.id_for_label }}">{{ field.label }}</a>: {{ error }}</li>
+      {% endfor %}{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  <div class="form-grid">
+    {% for field in form %}
+    <div class="form-row{% if field.errors %} has-error{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required">(required)</span>{% endif %}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-secondary" href="{{ cancel_url }}">Cancel</a>
+  </div>
+</form>

@@ -1,0 +1,5 @@
+<div class="kpi-card{% if na %} is-unavailable{% endif %}">
+  <h4 class="kpi-label">{{ label }}</h4>
+  <p class="kpi-value">{{ value }}{% if unit and not na %} <span class="kpi-unit">{{ unit }}</span>{% endif %}</p>
+  {% if note %}<p class="kpi-note">{{ note }}</p>{% endif %}
+</div>

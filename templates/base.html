@@ -1,0 +1,51 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page_title %}{{ page_title }} - {% endif %}{{ APP_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="topbar">
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+    <a class="brand" href="{% url 'production:dashboard' %}">{{ APP_NAME }}</a>
+    <span class="topbar-context">{{ page_title }}</span>
+  </header>
+  <div class="shell">
+    <nav id="sidebar" class="sidebar" aria-label="Main navigation">
+      <ul>
+        <li><a href="{% url 'production:dashboard' %}"{% if nav_section == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a></li>
+        <li><a href="{% url 'production:order_list' %}"{% if nav_section == 'order' %} class="active" aria-current="page"{% endif %}>Production Orders</a></li>
+        <li><a href="{% url 'production:batch_list' %}"{% if nav_section == 'batch' %} class="active" aria-current="page"{% endif %}>Production Batches</a></li>
+        <li><a href="{% url 'production:production_list' %}"{% if nav_section == 'production' %} class="active" aria-current="page"{% endif %}>Production Records</a></li>
+        <li><a href="{% url 'production:downtime_list' %}"{% if nav_section == 'downtime' %} class="active" aria-current="page"{% endif %}>Downtime</a></li>
+        <li><a href="{% url 'production:quality_list' %}"{% if nav_section == 'quality' %} class="active" aria-current="page"{% endif %}>Quality Records</a></li>
+        <li><a href="{% url 'production:report' %}"{% if nav_section == 'report' %} class="active" aria-current="page"{% endif %}>Reports</a></li>
+      </ul>
+    </nav>
+    <main id="main" class="content" tabindex="-1">
+      {% if has_synthetic_data %}
+      <div class="banner-synthetic" role="note">
+        <strong>Synthetic data present.</strong>
+        This database contains demonstration records with <code>SYN-</code> references.
+        They are generated examples for software verification, not actual factory records.
+      </div>
+      {% endif %}
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.level_tag }}" role="status"><strong>{{ message.level_tag|capfirst }}:</strong> {{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <footer class="footer">
+    <span>Local-first application. Intended for trusted local use; not for exposure to untrusted networks.</span>
+  </footer>
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

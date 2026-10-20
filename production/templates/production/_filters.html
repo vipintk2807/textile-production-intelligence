@@ -1,0 +1,20 @@
+<form method="get" class="filter-bar" aria-label="Filters">
+  {% if filter_form.non_field_errors %}
+  <div class="error-summary" role="alert">
+    <ul>{% for error in filter_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  <div class="filter-fields">
+    {% for field in filter_form %}
+    <div class="filter-field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply Filters</button>
+    <a class="btn btn-secondary" href="{{ request.path }}">Reset Filters</a>
+  </div>
+</form>

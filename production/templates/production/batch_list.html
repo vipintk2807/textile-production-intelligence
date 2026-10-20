@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<div class="page-head"><h1>{{ page_title }}</h1><a class="btn btn-primary" href="{{ create_url }}">{{ create_label }}</a></div>
+{% include "production/_filters.html" %}
+{% if object_list %}
+<div class="table-wrap">
+  <table class="data-table">
+    <caption class="visually-hidden">Production batches</caption>
+    <thead><tr>
+      <th scope="col">Batch ID</th><th scope="col">Order</th><th scope="col" class="num">Planned quantity</th>
+      <th scope="col">Start</th><th scope="col">End</th><th scope="col">Status</th><th scope="col">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for batch in object_list %}
+      <tr>
+        <td><a href="{% url 'production:batch_detail' batch.pk %}">{{ batch.batch_code }}</a></td>
+        <td><a href="{% url 'production:order_detail' batch.order_id %}">{{ batch.order.order_code }}</a></td>
+        <td class="num">{% if batch.planned_quantity is not None %}{{ batch.planned_quantity|qty }} {{ batch.unit.code }}{% else %}Not set{% endif %}</td>
+        <td>{{ batch.start_date|date:"Y-m-d"|default:"-" }}</td>
+        <td>{{ batch.end_date|date:"Y-m-d"|default:"-" }}</td>
+        <td><span class="badge badge-{{ batch.status|lower }}">{{ batch.get_status_display }}</span></td>
+        <td><a href="{% url 'production:batch_detail' batch.pk %}">View</a> | <a href="{% url 'production:batch_update' batch.pk %}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "production/_pagination.html" %}
+{% else %}
+{% include "production/_empty.html" with noun="batches" %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<div class="page-head"><h1>{{ page_title }}</h1><a class="btn btn-primary" href="{{ create_url }}">{{ create_label }}</a></div>
+<p class="lead">Rework and rejection are separate record types. Each record is a newly identified quantity for one event. A missing record does not mean zero defects.</p>
+{% include "production/_filters.html" %}
+{% if object_list %}
+<div class="table-wrap">
+  <table class="data-table">
+    <caption class="visually-hidden">Quality records</caption>
+    <thead><tr>
+      <th scope="col">ID</th><th scope="col">Date</th><th scope="col">Order</th><th scope="col">Batch</th>
+      <th scope="col">Type</th><th scope="col" class="num">Quantity</th><th scope="col">Reason</th><th scope="col">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for record in object_list %}
+      <tr>
+        <td><a href="{% url 'production:quality_detail' record.pk %}">#{{ record.pk }}</a></td>
+        <td>{{ record.record_date|date:"Y-m-d" }}</td>
+        <td><a href="{% url 'production:order_detail' record.order_id %}">{{ record.order.order_code }}</a></td>
+        <td>{% if record.batch_id %}<a href="{% url 'production:batch_detail' record.batch_id %}">{{ record.batch.batch_code }}</a>{% else %}Order-level{% endif %}</td>
+        <td><span class="badge badge-{{ record.record_type|lower }}">{{ record.get_record_type_display }}</span></td>
+        <td class="num">{{ record.quantity|qty }} {{ record.unit.code }}</td>
+        <td>{{ record.reason|default:"-" }}</td>
+        <td><a href="{% url 'production:quality_detail' record.pk %}">View</a> | <a href="{% url 'production:quality_update' record.pk %}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "production/_pagination.html" %}
+{% else %}
+{% include "production/_empty.html" with noun="quality records" %}
+{% endif %}
+{% endblock %}

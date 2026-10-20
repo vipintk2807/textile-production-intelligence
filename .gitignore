@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local data - never publish
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+backups/
+.env
+*.log
+
+# Generated
+staticfiles/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Private planning material must stay out of this repository
+*planning*/
+master_prompt.md

@@ -1,0 +1,5 @@
+# Runtime dependencies (Python 3.12). Constrained to the Django 5.2 LTS series.
+# After a successful install you may freeze exact versions with:
+#   pip freeze > requirements.lock.txt
+Django>=5.2.4,<5.3
+tzdata>=2024.1

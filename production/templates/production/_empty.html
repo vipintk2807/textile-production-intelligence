@@ -1,0 +1,11 @@
+{# Distinguishes "no records exist" from "no records match the filters". #}
+<div class="empty-state">
+  {% if filter_invalid %}
+  <p><strong>The filters are not valid.</strong> Correct the highlighted fields and apply the filters again. No records are shown until the filters are valid.</p>
+  {% elif filters_active %}
+  <p><strong>No {{ noun }} match the selected filters.</strong> This does not mean none exist. <a href="{{ request.path }}">Reset the filters</a> to see all records.</p>
+  {% else %}
+  <p><strong>No {{ noun }} have been recorded yet.</strong></p>
+  <p><a class="btn btn-primary" href="{{ create_url }}">{{ create_label }}</a></p>
+  {% endif %}
+</div>

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load production_extras %}
+{% block content %}
+<div class="page-head"><h1>{{ page_title }}</h1><a class="btn btn-primary" href="{{ create_url }}">{{ create_label }}</a></div>
+{% include "production/_filters.html" %}
+{% if rows %}
+<div class="table-wrap">
+  <table class="data-table">
+    <caption class="visually-hidden">Production orders</caption>
+    <thead>
+      <tr>
+        <th scope="col">Order ID</th><th scope="col">Product / style</th>
+        <th scope="col" class="num">Order quantity</th><th scope="col">Planned start</th><th scope="col">Planned end</th>
+        <th scope="col" class="num">Remaining (recorded output basis)</th><th scope="col">Status</th>
+        <th scope="col">Updated</th><th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order, remaining in rows %}
+      <tr>
+        <td><a href="{% url 'production:order_detail' order.pk %}">{{ order.order_code }}</a></td>
+        <td>{{ order.product_reference }}</td>
+        <td class="num">{{ order.order_quantity|qty }} {{ order.unit.code }}</td>
+        <td>{{ order.planned_start_date|date:"Y-m-d"|default:"-" }}</td>
+        <td>{{ order.planned_end_date|date:"Y-m-d"|default:"-" }}</td>
+        <td class="num">{% if remaining.result.ok %}{{ remaining.result.value|qty }} {{ order.unit.code }}{% if remaining.over_produced %} <span class="flag flag-warning">Over-produced: investigate</span>{% endif %}{% else %}Not available{% endif %}</td>
+        <td><span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span></td>
+        <td>{{ order.updated_at|date:"Y-m-d" }}</td>
+        <td><a href="{% url 'production:order_detail' order.pk %}">View</a> | <a href="{% url 'production:order_update' order.pk %}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "production/_pagination.html" %}
+{% else %}
+{% include "production/_empty.html" with noun="orders" %}
+{% endif %}
+{% endblock %}
